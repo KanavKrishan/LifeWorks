@@ -1,12 +1,13 @@
-const Message = require("../models/Message");
-
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    socket.on("join", (room) => socket.join(room));
+    console.log("User connected:", socket.id);
 
-    socket.on("message", async (data) => {
-      await Message.create(data);
-      io.to(data.room).emit("message", data);
+    socket.on("sendMessage", (data) => {
+      io.emit("receiveMessage", data);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
     });
   });
 };
