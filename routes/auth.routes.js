@@ -5,23 +5,24 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Register
 router.post("/register", async (req, res) => {
   const hashed = await bcrypt.hash(req.body.password, 10);
-  const user = new User({ email: req.body.email, password: hashed });
-  await user.save();
-  res.json({ message: "User registered" });
+  await User.create({ ...req.body, password: hashed });
+  res.json("Registered");
 });
 
-// Login
 router.post("/login", async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(400).json("User not found");
+  if (!user) return res.status(400).json("Invalid");
 
-  const valid = await bcrypt.compare(req.body.password, user.password);
-  if (!valid) return res.status(400).json("Invalid password");
+  const ok = await bcrypt.compare(req.body.password, user.password);
+  if (!ok) return res.status(400).json("Invalid");
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET
+  );
+
   res.json({ token });
 });
 
